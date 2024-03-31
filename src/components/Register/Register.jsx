@@ -1,8 +1,9 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
 import auth from "../Firebase/firebase.config";
 import { useState } from "react";
 import { IoIosEyeOff } from "react-icons/io";
 import { IoEye } from "react-icons/io5";
+import { Link } from "react-router-dom";
 
 const Register = () => {
     const [registerError, setRegisterError] = useState('');
@@ -12,9 +13,10 @@ const Register = () => {
     const handleRegister = e => {
         e.preventDefault();
         const email = e.target.email.value;
+        const name = e.target.name.value;
         const password = e.target.password.value;
         const accepted = e.target.terms.checked;
-        console.log(accepted)
+        console.log(name, password,accepted)
 
         // Reset error and success messages
         setRegisterError('');
@@ -36,6 +38,24 @@ const Register = () => {
             .then(result => {
                 console.log(result.user);
                 setSuccess('User created successfully');
+
+                // update profile 
+                updateProfile(result.user, {
+                    displayName: name,
+                    photoURL: "https://example.com/jane-q-user/profile.jpg"
+                })
+                .then(()=>{
+                    console.log('profile updated')
+                })
+                .catch(error =>{
+                    console.log(error.message)
+
+                })
+                // send email verification 
+                sendEmailVerification(result.user)
+                .then(()=>{
+                    alert("Please check your email and very your")
+                })
             })
             .catch(error => {
                 console.error(error);
@@ -48,6 +68,8 @@ const Register = () => {
             <h1 className="text-3xl text-center">Please Register</h1>
             <form onSubmit={handleRegister} className="text-center space-y-4 mt-4">
                 <input className="w-full h-12 rounded-full" type="email" name="email" placeholder="Enter your email" required />
+
+                <input className="w-full h-12 rounded-full" type="text" name="name" placeholder="Enter your name" required />
                 <br />
                 <div className="relative">
                     <input
@@ -72,6 +94,7 @@ const Register = () => {
             <div className="text-center mt-12">
                 {success && <p className="text-green-500">{success}</p>}
             </div>
+            <p>Already have an account <Link className="text-blue-500" to="/login">Login</Link></p>
         </div>
     );
 };
